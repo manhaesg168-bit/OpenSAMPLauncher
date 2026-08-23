@@ -22,11 +22,7 @@ jobs:
       - name: Dar permissão de execução ao gradlew
         run: chmod +x ./gradlew
 
-      - name: Compilar a APK (release)
-        run: ./gradlew assembleRelease
-
-      - name: Compilar a APK (debug, caso a release precise de assinatura)
-        if: failure()
+      - name: Compilar a APK (debug, já vem assinada)
         run: ./gradlew assembleDebug
 
       - name: Publicar a APK como artifact para download
