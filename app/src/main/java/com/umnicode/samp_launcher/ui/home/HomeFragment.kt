@@ -25,79 +25,64 @@ import kotlinx.android.synthetic.main.fragment_home.*
 class HomeFragment : Fragment() {
     private lateinit var rootView: View
 
+    // Servidor fixo do MCRP
+    private val MCRP_IP = "181.215.45.38"
+    private val MCRP_PORT = "7443"
+
     override fun onCreateView(
             inflater: LayoutInflater,
             container: ViewGroup?,
             savedInstanceStatus: Bundle?
     ): View {
-        // Get shared preferences
         val sharedPreferences: SharedPreferences? = this.context?.getSharedPreferences("HomeFragment", Context.MODE_PRIVATE);
         val preferencesEditor: SharedPreferences.Editor? = sharedPreferences?.edit();
 
         this.rootView = inflater.inflate(R.layout.fragment_home, container, false);
 
-        // Set nickname text
         val nicknameText: TextView = this.rootView.findViewById(R.id.nickname)
 
         val launcherApplication: LauncherApplication = activity?.application as LauncherApplication;
         nicknameText.text = launcherApplication.userConfig.Nickname;
 
-        // Set port filter
         val portEditText: EditText = this.rootView.findViewById(R.id.port);
         portEditText.filters = Array(1) { PortFilter() };
 
-        // Bind ip and port text edit fields
         val ipEditText: EditText = this.rootView.findViewById(R.id.ip);
         val passwordEditText:EditText = this.rootView.findViewById(R.id.password);
 
-        // Restore from preferences
+        // Fixa sempre o servidor do MCRP (ignora qualquer valor salvo antes)
+        ipEditText.setText(MCRP_IP);
+        portEditText.setText(MCRP_PORT);
+
         if (sharedPreferences != null){
-            ipEditText.setText(sharedPreferences.getString(R.id.ip.toString(), ""));
-            portEditText.setText(sharedPreferences.getString(R.id.port.toString(), ""));
             passwordEditText.setText(sharedPreferences.getString(R.id.password.toString(), ""));
         }
 
         ipEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                preferencesEditor?.putString(R.id.ip.toString(), s.toString());
-                preferencesEditor?.apply();
-            }
-
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 updateServerConfig();
             }
         });
         portEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                preferencesEditor?.putString(R.id.port.toString(), s.toString());
-                preferencesEditor?.apply();
-            }
-
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
                 updateServerConfig();
             }
         });
         passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-            }
-
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 preferencesEditor?.putString(R.id.password.toString(), s.toString());
                 preferencesEditor?.apply();
             }
-
             override fun afterTextChanged(s: Editable?) {
                 updateServerConfig();
             }
         });
 
-        // Setup play button
         val playButton: PlayButton = this.rootView.findViewById(R.id.play_btn) as PlayButton;
         playButton.SetOnSAMPLaunchCallback {
             println("Launch SAMP");
@@ -121,10 +106,8 @@ class HomeFragment : Fragment() {
             port = 0;
         }
 
-        // Resolve server
         ServerConfig.Resolve(IP, port, userConfig.PingTimeout, this.context, object : ServerResolveCallback {
             override fun OnFinish(OutConfig: ServerConfig?)  {
-                // Update ServerView
                 val serverView: ServerView = rootView.findViewById(R.id.server_view);
                 serverView.SetServer(OutConfig);
 
@@ -133,7 +116,6 @@ class HomeFragment : Fragment() {
             }
 
             override fun OnPingFinish(OutConfig: ServerConfig?) {
-                // Update ServerView (again)
                 val serverView: ServerView = rootView.findViewById(R.id.server_view);
                 serverView.SetServer(OutConfig);
             }
