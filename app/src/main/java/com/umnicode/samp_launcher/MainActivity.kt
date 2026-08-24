@@ -1,8 +1,10 @@
 package com.umnicode.samp_launcher
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -45,6 +47,47 @@ class MainActivity : AppCompatActivity() {
 
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+        // Lê o link mcrp://conectar?ip=... caso o app tenha sido aberto por ele
+        this.HandleIncomingIntent(intent)
+    }
+
+    // Chamado quando o app já está aberto (em background/foreground) e recebe um novo link
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        this.HandleIncomingIntent(intent)
+    }
+
+    // Extrai o IP do link mcrp://conectar?ip=SEU_IP:PORTA e usa ele
+    private fun HandleIncomingIntent(intent: Intent?) {
+        val data: Uri? = intent?.data
+
+        if (data != null && data.scheme == "mcrp" && data.host == "conectar") {
+            val ip: String? = data.getQueryParameter("ip")
+
+            if (!ip.isNullOrEmpty()) {
+                Log.i("DeepLink", "IP recebido via link: $ip")
+                this.ConnectToServer(ip)
+            } else {
+                Log.w("DeepLink", "Link mcrp://conectar recebido sem parametro 'ip'")
+            }
+        }
+    }
+
+    // TODO: liga essa função com o fluxo real de conexão do launcher
+    // (por exemplo: preencher o campo de IP da tela de conexão e/ou
+    // chamar diretamente a função que inicia a conexão com o servidor SA-MP)
+    private fun ConnectToServer(ip: String) {
+        // Exemplo: separar host e porta, caso venha como "ip:porta"
+        val parts = ip.split(":")
+        val host = parts.getOrNull(0) ?: ip
+        val port = parts.getOrNull(1)?.toIntOrNull() ?: 7777 // porta padrão SA-MP
+
+        Log.i("DeepLink", "Conectando em host=$host porta=$port")
+
+        // Aqui entra a chamada real, por exemplo:
+        // (this.applicationContext as LauncherApplication).Connector.Connect(host, port)
     }
 
     // When we move app to background, we can for example remove dirs or install game APK ( it's undefined behavior, but we will support it )
